@@ -137,6 +137,7 @@ namespace FortniteEmoteWheel
             DisableCosmetics();
 
             PreviousSerializationRate = PhotonNetwork.SerializationRate;
+            PhotonNetwork.SerializationRate *= 4;
 
             Play2DAudio(LoadSoundFromResource("play"), 0.5f);
 
