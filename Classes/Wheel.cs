@@ -1,13 +1,11 @@
 ﻿using BepInEx;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using UnityEngine.XR;
 using UnityEngine.XR.Interaction.Toolkit;
 using Valve.VR;
-using static Unity.IO.LowLevel.Unsafe.AsyncReadManagerMetrics;
 
 namespace FortniteEmoteWheel.Classes
 {
@@ -20,6 +18,9 @@ namespace FortniteEmoteWheel.Classes
 
         private void Awake()
         {
+            if (instance != null)
+                Destroy(instance);
+                
             instance = this;
             Base = transform.Find("Base").gameObject;
             Selector = Base.transform.Find("Selected").gameObject;
@@ -48,9 +49,14 @@ namespace FortniteEmoteWheel.Classes
         private int Page = 0;
         public void Update()
         {
-            Vector2 Direction = UnityInput.Current.GetKey(KeyCode.B) ? -new Vector2(Screen.width / 2f - Mouse.current.position.x.value, Screen.height / 2f - Mouse.current.position.y.value).normalized : SteamVR_Actions.gorillaTag_RightJoystick2DAxis.axis;
+            bool bHeld = !XRSettings.isDeviceActive && UnityInput.Current.GetKey(KeyCode.B);
+            bool vHeld = !XRSettings.isDeviceActive && UnityInput.Current.GetKey(KeyCode.V);
+            bool leftButton = !XRSettings.isDeviceActive && Mouse.current.leftButton.isPressed;
+            bool rightButton = !XRSettings.isDeviceActive && Mouse.current.rightButton.isPressed;
 
-            if (SteamVR_Actions.gorillaTag_LeftJoystickClick.state || UnityInput.Current.GetKey(KeyCode.V))
+            Vector2 Direction = bHeld ? -new Vector2(Screen.width / 2f - Mouse.current.position.x.value, Screen.height / 2f - Mouse.current.position.y.value).normalized : SteamVR_Actions.gorillaTag_RightJoystick2DAxis.axis;
+
+            if (SteamVR_Actions.gorillaTag_LeftJoystickClick.state || vHeld)
             {
                 Plugin.emoteTime = -9999f;
 
@@ -58,14 +64,14 @@ namespace FortniteEmoteWheel.Classes
                     Plugin.audiomgr.GetComponent<AudioSource>().Stop();
             }
 
-            if ((Mouse.current.leftButton.isPressed || Mouse.current.rightButton.isPressed || Mathf.Abs(SteamVR_Actions.gorillaTag_LeftJoystick2DAxis.axis.x) > 0.5f) && Time.time > changePageDelay && Base.activeSelf)
+            if ((leftButton || rightButton || Mathf.Abs(SteamVR_Actions.gorillaTag_LeftJoystick2DAxis.axis.x) > 0.5f) && Time.time > changePageDelay && Base.activeSelf)
             {
                 changePageDelay = Time.time + 0.15f;
                 int lastPage = 2;
 
                 Plugin.Play2DAudio(Plugin.LoadSoundFromResource("nav"), 0.5f);
 
-                Page += (SteamVR_Actions.gorillaTag_LeftJoystick2DAxis.axis.x > 0.5f || Mouse.current.rightButton.isPressed ? 1 : -1);
+                Page += (SteamVR_Actions.gorillaTag_LeftJoystick2DAxis.axis.x > 0.5f || rightButton ? 1 : -1);
                 if (Page < 0)
                     Page = lastPage;
 
@@ -79,7 +85,7 @@ namespace FortniteEmoteWheel.Classes
                 }
             }
 
-            if (SteamVR_Actions.gorillaTag_RightJoystickClick.state || UnityInput.Current.GetKey(KeyCode.B))
+            if (SteamVR_Actions.gorillaTag_RightJoystickClick.state || bHeld)
             {
                 if (Time.time > Plugin.emoteTime)
                 {
@@ -89,7 +95,7 @@ namespace FortniteEmoteWheel.Classes
 
                 if (Base.activeSelf)
                 {
-                    if (UnityInput.Current.GetKey(KeyCode.B))
+                    if (bHeld)
                     {
                         Base.transform.position = GorillaTagger.Instance.headCollider.transform.position + GorillaTagger.Instance.headCollider.transform.forward;
                         Base.transform.rotation = GorillaTagger.Instance.headCollider.transform.rotation * Quaternion.Euler(0f, 0f, 180f);
@@ -152,6 +158,15 @@ namespace FortniteEmoteWheel.Classes
                             case -1:
                                 emoteTitle = "DISCO FEVER";
                                 break;
+                            case -2:
+                                emoteTitle = "BOOGIE DOWN";
+                                break;
+                            case -3:
+                                emoteTitle = "THE ROBOT";
+                                break;
+                            case -4:
+                                emoteTitle = "BEST MATES";
+                                break;
                         }
                     }
                     if (Page == 2)
@@ -180,6 +195,9 @@ namespace FortniteEmoteWheel.Classes
                             case -6:
                             case 2:
                                 emoteTitle = "WHAT YOU WANT";
+                                break;
+                            case 1:
+                                emoteTitle = "THE RENEGADE";
                                 break;
                         }
                     }
@@ -256,6 +274,39 @@ namespace FortniteEmoteWheel.Classes
 
                                 Plugin.Emote("DiscoFever", "discofever", -1f, true);
                                 break;
+                            case -2:
+                                GorillaTagger.Instance.offlineVRRig.leftIndex.calcT = 1f;
+                                GorillaTagger.Instance.offlineVRRig.leftMiddle.calcT = 1f;
+
+                                GorillaTagger.Instance.offlineVRRig.rightIndex.calcT = 1f;
+                                GorillaTagger.Instance.offlineVRRig.rightMiddle.calcT = 1f;
+
+                                GorillaTagger.Instance.offlineVRRig.rightIndex.LerpFinger(1f, false);
+                                GorillaTagger.Instance.offlineVRRig.rightMiddle.LerpFinger(1f, false);
+
+                                GorillaTagger.Instance.offlineVRRig.leftIndex.LerpFinger(1f, false);
+                                GorillaTagger.Instance.offlineVRRig.leftMiddle.LerpFinger(1f, false);
+
+                                Plugin.Emote("BoogieDownLoop", "boogiedown", -1f, true);
+                                break;
+                            case -3:
+                                Plugin.Emote("Emote_RobotDance", "therobot", -1f, true);
+                                break;
+                            case -4:
+                                GorillaTagger.Instance.offlineVRRig.leftIndex.calcT = 1f;
+                                GorillaTagger.Instance.offlineVRRig.leftMiddle.calcT = 1f;
+
+                                GorillaTagger.Instance.offlineVRRig.rightIndex.calcT = 1f;
+                                GorillaTagger.Instance.offlineVRRig.rightMiddle.calcT = 1f;
+
+                                GorillaTagger.Instance.offlineVRRig.rightIndex.LerpFinger(1f, false);
+                                GorillaTagger.Instance.offlineVRRig.rightMiddle.LerpFinger(1f, false);
+
+                                GorillaTagger.Instance.offlineVRRig.leftIndex.LerpFinger(1f, false);
+                                GorillaTagger.Instance.offlineVRRig.leftMiddle.LerpFinger(1f, false);
+
+                                Plugin.Emote("BestMates", "bestmates", -1f, true);
+                                break;
                         }
                     }
                     if (Page == 2)
@@ -283,6 +334,9 @@ namespace FortniteEmoteWheel.Classes
                             case -6:
                             case 2:
                                 Plugin.Emote("WhatYouWant", "whatyouwant", -1f, true);
+                                break;
+                            case 1:
+                                Plugin.Emote("The Renegade", "Emote_Just_Home_Music_Loop", -1f, true);
                                 break;
                         }
                     }
