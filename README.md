@@ -9,6 +9,7 @@ The emote wheel from Fortnite, directly ported to Gorilla Tag.
 - Select: Right Joystick Axis / Mouse
 - Change Page: Left Joystick Axis / Left Click / Right Click
 - Stop Emote: Left Joystick Click / V
+
 ---
 
 # Installation
@@ -17,4 +18,4 @@ The emote wheel from Fortnite, directly ported to Gorilla Tag.
 - Drag the file `FortniteEmoteWheel.dll` to your plugins folder
 - Start Gorilla Tag if needed
 
-> This product is not affiliated with Gorilla Tag or Another Axiom LLC and is not endorsed or otherwise sponsored by Another Axiom LLC. Portions of the materials contained herein are property of Another Axiom LLC. © 2024 Another Axiom LLC.
+> This product is not affiliated with Gorilla Tag or Another Axiom LLC and is not endorsed or otherwise sponsored by Another Axiom LLC. Portions of the materials contained herein are property of Another Axiom LLC. Â© 2024 Another Axiom LLC.
