@@ -1,5 +1,6 @@
 ﻿using BepInEx;
 using GorillaTag.CosmeticSystem;
+using Photon.Pun;
 using Photon.Voice.Unity;
 using Steamworks;
 using System;
@@ -123,6 +124,8 @@ namespace FortniteEmoteWheel
         public static GameObject Kyle;
         public static float emoteTime;
 
+        private static int PreviousSerializationRate = -1;
+
         public static Vector3 archivePosition;
 
         public static void Emote(string emoteName, string emoteSound, float animationTime = -1f, bool looping = false)
@@ -132,6 +135,8 @@ namespace FortniteEmoteWheel
 
             GorillaTagger.Instance.offlineVRRig.enabled = false;
             DisableCosmetics();
+
+            PreviousSerializationRate = PhotonNetwork.SerializationRate;
 
             Play2DAudio(LoadSoundFromResource("play"), 0.5f);
 
@@ -216,6 +221,9 @@ namespace FortniteEmoteWheel
                 {
                     GorillaTagger.Instance.offlineVRRig.enabled = true;
                     EnableCosmetics();
+
+                    if (PreviousSerializationRate > 0)
+                        PhotonNetwork.SerializationRate = PreviousSerializationRate;
 
                     UnityEngine.Object.Destroy(Kyle);
 

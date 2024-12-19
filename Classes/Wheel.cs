@@ -45,8 +45,10 @@ namespace FortniteEmoteWheel.Classes
 
         private float changePageDelay = 0f;
         private float prevRotation = -9999f;
+
         private int Selection = 0;
         private int Page = 0;
+
         public void Update()
         {
             bool bHeld = !XRSettings.isDeviceActive && UnityInput.Current.GetKey(KeyCode.B);
