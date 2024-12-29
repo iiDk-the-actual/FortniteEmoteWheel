@@ -17,6 +17,11 @@ namespace FortniteEmoteWheel
         public void Start()
         {
             HarmonyPatches.ApplyHarmonyPatches();
+            
+            GorillaTagger.OnPlayerSpawned(delegate
+            {
+                this.AddComponent<Networking_Callbacks>();
+            });
         }
 
         private static AssetBundle assetBundle;
