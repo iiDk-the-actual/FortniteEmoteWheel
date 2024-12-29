@@ -21,7 +21,8 @@ namespace FortniteEmoteWheel
         
         public override void OnJoinedRoom()
         {
-            PhotonNetwork.LocalPlayer.CustomProperties.Add("EmoteMod",true);
+            PhotonNetwork.LocalPlayer.CustomProperties.Add("EmoteMod", true);
+            PhotonNetwork.LocalPlayer.SetCustomProperties(PhotonNetwork.LocalPlayer.CustomProperties);
             foreach (Player player in PhotonNetwork.PlayerListOthers)
             {
                 if (ids.Contains(player.UserId))
