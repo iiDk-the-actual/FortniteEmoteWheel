@@ -1,5 +1,8 @@
 ﻿using BepInEx;
+using GorillaNetworking;
+using HarmonyLib;
 using System;
+using System.Runtime.InteropServices.ComTypes;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -13,6 +16,7 @@ namespace FortniteEmoteWheel.Classes
     {
         public static Wheel instance;
 
+        private bool IsSteam;
         private GameObject Base;
         private GameObject Selector;
 
@@ -20,7 +24,9 @@ namespace FortniteEmoteWheel.Classes
         {
             if (instance != null)
                 Destroy(instance);
-                
+
+            IsSteam = Traverse.Create(PlayFabAuthenticator.instance).Field("platform").GetValue().ToString().ToLower() == "steam";
+
             instance = this;
             Base = transform.Find("Base").gameObject;
             Selector = Base.transform.Find("Selected").gameObject;
@@ -41,6 +47,54 @@ namespace FortniteEmoteWheel.Classes
             float angle = Mathf.Atan2(position.y, position.x) * Mathf.Rad2Deg;
 
             return angle;
+        }
+
+        public Vector2 GetLeftJoystickAxis()
+        {
+            if (IsSteam)
+                return SteamVR_Actions.gorillaTag_LeftJoystick2DAxis.GetAxis(SteamVR_Input_Sources.LeftHand);
+            else
+            {
+                Vector2 leftJoystick;
+                ControllerInputPoller.instance.leftControllerDevice.TryGetFeatureValue(UnityEngine.XR.CommonUsages.primary2DAxis, out leftJoystick);
+                return leftJoystick;
+            }
+        }
+
+        public Vector2 GetRightJoystickAxis()
+        {
+            if (IsSteam)
+                return SteamVR_Actions.gorillaTag_RightJoystick2DAxis.GetAxis(SteamVR_Input_Sources.RightHand);
+            else
+            {
+                Vector2 rightJoystick;
+                ControllerInputPoller.instance.rightControllerDevice.TryGetFeatureValue(UnityEngine.XR.CommonUsages.primary2DAxis, out rightJoystick);
+                return rightJoystick;
+            }
+        }
+
+        public bool GetLeftJoystickDown()
+        {
+            if (IsSteam)
+                return SteamVR_Actions.gorillaTag_LeftJoystickClick.GetState(SteamVR_Input_Sources.LeftHand);
+            else
+            {
+                bool leftJoystickClick;
+                ControllerInputPoller.instance.leftControllerDevice.TryGetFeatureValue(UnityEngine.XR.CommonUsages.primary2DAxisClick, out leftJoystickClick);
+                return leftJoystickClick;
+            }
+        }
+
+        public bool GetRightJoystickDown()
+        {
+            if (IsSteam)
+                return SteamVR_Actions.gorillaTag_RightJoystickClick.GetState(SteamVR_Input_Sources.RightHand);
+            else
+            {
+                bool rightJoystickClick;
+                ControllerInputPoller.instance.rightControllerDevice.TryGetFeatureValue(UnityEngine.XR.CommonUsages.primary2DAxisClick, out rightJoystickClick);
+                return rightJoystickClick;
+            }
         }
 
         private float changePageDelay = 0f;
