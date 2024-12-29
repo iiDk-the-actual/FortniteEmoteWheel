@@ -110,9 +110,9 @@ namespace FortniteEmoteWheel.Classes
             bool leftButton = !XRSettings.isDeviceActive && Mouse.current.leftButton.isPressed;
             bool rightButton = !XRSettings.isDeviceActive && Mouse.current.rightButton.isPressed;
 
-            Vector2 Direction = bHeld ? -new Vector2(Screen.width / 2f - Mouse.current.position.x.value, Screen.height / 2f - Mouse.current.position.y.value).normalized : SteamVR_Actions.gorillaTag_RightJoystick2DAxis.axis;
+            Vector2 Direction = bHeld ? -new Vector2(Screen.width / 2f - Mouse.current.position.x.value, Screen.height / 2f - Mouse.current.position.y.value).normalized : GetRightJoystickAxis();
 
-            if (SteamVR_Actions.gorillaTag_LeftJoystickClick.state || vHeld)
+            if (GetLeftJoystickDown() || vHeld)
             {
                 Plugin.emoteTime = -9999f;
 
@@ -120,14 +120,14 @@ namespace FortniteEmoteWheel.Classes
                     Plugin.audiomgr.GetComponent<AudioSource>().Stop();
             }
 
-            if ((leftButton || rightButton || Mathf.Abs(SteamVR_Actions.gorillaTag_LeftJoystick2DAxis.axis.x) > 0.5f) && Time.time > changePageDelay && Base.activeSelf)
+            if ((leftButton || rightButton || Mathf.Abs(GetLeftJoystickAxis().x) > 0.5f) && Time.time > changePageDelay && Base.activeSelf)
             {
                 changePageDelay = Time.time + 0.15f;
                 int lastPage = 2;
 
                 Plugin.Play2DAudio(Plugin.LoadSoundFromResource("nav"), 0.5f);
 
-                Page += (SteamVR_Actions.gorillaTag_LeftJoystick2DAxis.axis.x > 0.5f || rightButton ? 1 : -1);
+                Page += (GetLeftJoystickAxis().x > 0.5f || rightButton ? 1 : -1);
                 if (Page < 0)
                     Page = lastPage;
 
@@ -141,7 +141,7 @@ namespace FortniteEmoteWheel.Classes
                 }
             }
 
-            if (SteamVR_Actions.gorillaTag_RightJoystickClick.state || bHeld)
+            if (GetRightJoystickDown() || bHeld)
             {
                 if (Time.time > Plugin.emoteTime)
                 {
