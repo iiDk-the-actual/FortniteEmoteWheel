@@ -1,5 +1,8 @@
 ﻿using BepInEx;
+using GorillaNetworking;
+using HarmonyLib;
 using System;
+using System.Runtime.InteropServices.ComTypes;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -13,6 +16,7 @@ namespace FortniteEmoteWheel.Classes
     {
         public static Wheel instance;
 
+        private bool IsSteam;
         private GameObject Base;
         private GameObject Selector;
 
@@ -20,7 +24,9 @@ namespace FortniteEmoteWheel.Classes
         {
             if (instance != null)
                 Destroy(instance);
-                
+
+            IsSteam = Traverse.Create(PlayFabAuthenticator.instance).Field("platform").GetValue().ToString().ToLower() == "steam";
+
             instance = this;
             Base = transform.Find("Base").gameObject;
             Selector = Base.transform.Find("Selected").gameObject;
@@ -43,6 +49,54 @@ namespace FortniteEmoteWheel.Classes
             return angle;
         }
 
+        public Vector2 GetLeftJoystickAxis()
+        {
+            if (IsSteam)
+                return SteamVR_Actions.gorillaTag_LeftJoystick2DAxis.GetAxis(SteamVR_Input_Sources.LeftHand);
+            else
+            {
+                Vector2 leftJoystick;
+                ControllerInputPoller.instance.leftControllerDevice.TryGetFeatureValue(UnityEngine.XR.CommonUsages.primary2DAxis, out leftJoystick);
+                return leftJoystick;
+            }
+        }
+
+        public Vector2 GetRightJoystickAxis()
+        {
+            if (IsSteam)
+                return SteamVR_Actions.gorillaTag_RightJoystick2DAxis.GetAxis(SteamVR_Input_Sources.RightHand);
+            else
+            {
+                Vector2 rightJoystick;
+                ControllerInputPoller.instance.rightControllerDevice.TryGetFeatureValue(UnityEngine.XR.CommonUsages.primary2DAxis, out rightJoystick);
+                return rightJoystick;
+            }
+        }
+
+        public bool GetLeftJoystickDown()
+        {
+            if (IsSteam)
+                return SteamVR_Actions.gorillaTag_LeftJoystickClick.GetState(SteamVR_Input_Sources.LeftHand);
+            else
+            {
+                bool leftJoystickClick;
+                ControllerInputPoller.instance.leftControllerDevice.TryGetFeatureValue(UnityEngine.XR.CommonUsages.primary2DAxisClick, out leftJoystickClick);
+                return leftJoystickClick;
+            }
+        }
+
+        public bool GetRightJoystickDown()
+        {
+            if (IsSteam)
+                return SteamVR_Actions.gorillaTag_RightJoystickClick.GetState(SteamVR_Input_Sources.RightHand);
+            else
+            {
+                bool rightJoystickClick;
+                ControllerInputPoller.instance.rightControllerDevice.TryGetFeatureValue(UnityEngine.XR.CommonUsages.primary2DAxisClick, out rightJoystickClick);
+                return rightJoystickClick;
+            }
+        }
+
         private float changePageDelay = 0f;
         private float prevRotation = -9999f;
 
@@ -56,9 +110,9 @@ namespace FortniteEmoteWheel.Classes
             bool leftButton = !XRSettings.isDeviceActive && Mouse.current.leftButton.isPressed;
             bool rightButton = !XRSettings.isDeviceActive && Mouse.current.rightButton.isPressed;
 
-            Vector2 Direction = bHeld ? -new Vector2(Screen.width / 2f - Mouse.current.position.x.value, Screen.height / 2f - Mouse.current.position.y.value).normalized : SteamVR_Actions.gorillaTag_RightJoystick2DAxis.axis;
+            Vector2 Direction = bHeld ? -new Vector2(Screen.width / 2f - Mouse.current.position.x.value, Screen.height / 2f - Mouse.current.position.y.value).normalized : GetRightJoystickAxis();
 
-            if (SteamVR_Actions.gorillaTag_LeftJoystickClick.state || vHeld)
+            if (GetLeftJoystickDown() || vHeld)
             {
                 Plugin.emoteTime = -9999f;
 
@@ -66,14 +120,14 @@ namespace FortniteEmoteWheel.Classes
                     Plugin.audiomgr.GetComponent<AudioSource>().Stop();
             }
 
-            if ((leftButton || rightButton || Mathf.Abs(SteamVR_Actions.gorillaTag_LeftJoystick2DAxis.axis.x) > 0.5f) && Time.time > changePageDelay && Base.activeSelf)
+            if ((leftButton || rightButton || Mathf.Abs(GetLeftJoystickAxis().x) > 0.5f) && Time.time > changePageDelay && Base.activeSelf)
             {
                 changePageDelay = Time.time + 0.15f;
                 int lastPage = 2;
 
                 Plugin.Play2DAudio(Plugin.LoadSoundFromResource("nav"), 0.5f);
 
-                Page += (SteamVR_Actions.gorillaTag_LeftJoystick2DAxis.axis.x > 0.5f || rightButton ? 1 : -1);
+                Page += (GetLeftJoystickAxis().x > 0.5f || rightButton ? 1 : -1);
                 if (Page < 0)
                     Page = lastPage;
 
@@ -87,7 +141,7 @@ namespace FortniteEmoteWheel.Classes
                 }
             }
 
-            if (SteamVR_Actions.gorillaTag_RightJoystickClick.state || bHeld)
+            if (GetRightJoystickDown() || bHeld)
             {
                 if (Time.time > Plugin.emoteTime)
                 {
