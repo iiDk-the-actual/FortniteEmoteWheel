@@ -2,7 +2,6 @@
 using GorillaTag.CosmeticSystem;
 using Photon.Pun;
 using Photon.Voice.Unity;
-using Steamworks;
 using System;
 using System.Collections.Generic;
 using System.IO;
