@@ -1,5 +1,8 @@
 ﻿using BepInEx;
+using GorillaNetworking;
+using HarmonyLib;
 using System;
+using System.Runtime.InteropServices.ComTypes;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -13,6 +16,7 @@ namespace FortniteEmoteWheel.Classes
     {
         public static Wheel instance;
 
+        private bool IsSteam;
         private GameObject Base;
         private GameObject Selector;
 
@@ -20,7 +24,9 @@ namespace FortniteEmoteWheel.Classes
         {
             if (instance != null)
                 Destroy(instance);
-                
+
+            IsSteam = Traverse.Create(PlayFabAuthenticator.instance).Field("platform").GetValue().ToString().ToLower() == "steam";
+
             instance = this;
             Base = transform.Find("Base").gameObject;
             Selector = Base.transform.Find("Selected").gameObject;
@@ -43,6 +49,54 @@ namespace FortniteEmoteWheel.Classes
             return angle;
         }
 
+        public Vector2 GetLeftJoystickAxis()
+        {
+            if (IsSteam)
+                return SteamVR_Actions.gorillaTag_LeftJoystick2DAxis.GetAxis(SteamVR_Input_Sources.LeftHand);
+            else
+            {
+                Vector2 leftJoystick;
+                ControllerInputPoller.instance.leftControllerDevice.TryGetFeatureValue(UnityEngine.XR.CommonUsages.primary2DAxis, out leftJoystick);
+                return leftJoystick;
+            }
+        }
+
+        public Vector2 GetRightJoystickAxis()
+        {
+            if (IsSteam)
+                return SteamVR_Actions.gorillaTag_RightJoystick2DAxis.GetAxis(SteamVR_Input_Sources.RightHand);
+            else
+            {
+                Vector2 rightJoystick;
+                ControllerInputPoller.instance.rightControllerDevice.TryGetFeatureValue(UnityEngine.XR.CommonUsages.primary2DAxis, out rightJoystick);
+                return rightJoystick;
+            }
+        }
+
+        public bool GetLeftJoystickDown()
+        {
+            if (IsSteam)
+                return SteamVR_Actions.gorillaTag_LeftJoystickClick.GetState(SteamVR_Input_Sources.LeftHand);
+            else
+            {
+                bool leftJoystickClick;
+                ControllerInputPoller.instance.leftControllerDevice.TryGetFeatureValue(UnityEngine.XR.CommonUsages.primary2DAxisClick, out leftJoystickClick);
+                return leftJoystickClick;
+            }
+        }
+
+        public bool GetRightJoystickDown()
+        {
+            if (IsSteam)
+                return SteamVR_Actions.gorillaTag_RightJoystickClick.GetState(SteamVR_Input_Sources.RightHand);
+            else
+            {
+                bool rightJoystickClick;
+                ControllerInputPoller.instance.rightControllerDevice.TryGetFeatureValue(UnityEngine.XR.CommonUsages.primary2DAxisClick, out rightJoystickClick);
+                return rightJoystickClick;
+            }
+        }
+
         private float changePageDelay = 0f;
         private float prevRotation = -9999f;
 
@@ -56,9 +110,9 @@ namespace FortniteEmoteWheel.Classes
             bool leftButton = !XRSettings.isDeviceActive && Mouse.current.leftButton.isPressed;
             bool rightButton = !XRSettings.isDeviceActive && Mouse.current.rightButton.isPressed;
 
-            Vector2 Direction = bHeld ? -new Vector2(Screen.width / 2f - Mouse.current.position.x.value, Screen.height / 2f - Mouse.current.position.y.value).normalized : SteamVR_Actions.gorillaTag_RightJoystick2DAxis.axis;
+            Vector2 Direction = bHeld ? -new Vector2(Screen.width / 2f - Mouse.current.position.x.value, Screen.height / 2f - Mouse.current.position.y.value).normalized : GetRightJoystickAxis();
 
-            if (SteamVR_Actions.gorillaTag_LeftJoystickClick.state || vHeld)
+            if (GetLeftJoystickDown() || vHeld)
             {
                 Plugin.emoteTime = -9999f;
 
@@ -66,14 +120,14 @@ namespace FortniteEmoteWheel.Classes
                     Plugin.audiomgr.GetComponent<AudioSource>().Stop();
             }
 
-            if ((leftButton || rightButton || Mathf.Abs(SteamVR_Actions.gorillaTag_LeftJoystick2DAxis.axis.x) > 0.5f) && Time.time > changePageDelay && Base.activeSelf)
+            if ((leftButton || rightButton || Mathf.Abs(GetLeftJoystickAxis().x) > 0.5f) && Time.time > changePageDelay && Base.activeSelf)
             {
                 changePageDelay = Time.time + 0.15f;
-                int lastPage = 2;
+                int lastPage = 6;
 
                 Plugin.Play2DAudio(Plugin.LoadSoundFromResource("nav"), 0.5f);
 
-                Page += (SteamVR_Actions.gorillaTag_LeftJoystick2DAxis.axis.x > 0.5f || rightButton ? 1 : -1);
+                Page += (GetLeftJoystickAxis().x > 0.5f || rightButton ? 1 : -1);
                 if (Page < 0)
                     Page = lastPage;
 
@@ -87,7 +141,7 @@ namespace FortniteEmoteWheel.Classes
                 }
             }
 
-            if (SteamVR_Actions.gorillaTag_RightJoystickClick.state || bHeld)
+            if (GetRightJoystickDown() || bHeld)
             {
                 if (Time.time > Plugin.emoteTime)
                 {
@@ -200,6 +254,134 @@ namespace FortniteEmoteWheel.Classes
                                 break;
                             case 1:
                                 emoteTitle = "THE RENEGADE";
+                                break;
+                        }
+                    }
+                    if (Page == 3)
+                    {
+                        pageTitle = "COMMISSIONS 1";
+                        switch (selected)
+                        {
+                            case 0:
+                                emoteTitle = "JABBA SWITCHWAY";
+                                break;
+                            case -1:
+                                emoteTitle = "INFINITE DAB";
+                                break;
+                            case -2:
+                                emoteTitle = "CELEBRATE ME";
+                                break;
+                            case -3:
+                                emoteTitle = "BILLY BOUNCE";
+                                break;
+                            case -4:
+                                emoteTitle = "WINDMILL FLOSS";
+                                break;
+                            case -5:
+                                emoteTitle = "HYPE";
+                                break;
+                            case -6:
+                            case 2:
+                                emoteTitle = "ENTRANCED";
+                                break;
+                            case 1:
+                                emoteTitle = "LAUGH IT UP";
+                                break;
+                        }
+                    }
+                    if (Page == 4)
+                    {
+                        pageTitle = "COMMISSIONS 2";
+                        switch (selected)
+                        {
+                            case 0:
+                                emoteTitle = "SNOOP WALK";
+                                break;
+                            case -1:
+                                emoteTitle = "SCENARIO";
+                                break;
+                            case -2:
+                                emoteTitle = "NIGHT OUT";
+                                break;
+                            case -3:
+                                emoteTitle = "POINT AND STRUT";
+                                break;
+                            case -4:
+                                emoteTitle = "MOONGAZER";
+                                break;
+                            case -5:
+                                emoteTitle = "ROLLIE";
+                                break;
+                            case -6:
+                            case 2:
+                                emoteTitle = "HEEL CLICK BREAKDOWN";
+                                break;
+                            case 1:
+                                emoteTitle = "SWITCHSTEP";
+                                break;
+                        }
+                    }
+                    if (Page == 5)
+                    {
+                        pageTitle = "COMMISSIONS 3";
+                        switch (selected)
+                        {
+                            case 0:
+                                emoteTitle = "FREESTYLIN'";
+                                break;
+                            case -1:
+                                emoteTitle = "GO MUFASA";
+                                break;
+                            case -2:
+                                emoteTitle = "JUBI SLIDE";
+                                break;
+                            case -3:
+                                emoteTitle = "RUNNING MAN";
+                                break;
+                            case -4:
+                                emoteTitle = "ZANY";
+                                break;
+                            case -5:
+                                emoteTitle = "PUMPERNICKEL";
+                                break;
+                            case -6:
+                            case 2:
+                                emoteTitle = "PONY UP";
+                                break;
+                            case 1:
+                                emoteTitle = "HULA";
+                                break;
+                        }
+                    }
+                    if (Page == 6)
+                    {
+                        pageTitle = "COMMISSIONS 4";
+                        switch (selected)
+                        {
+                            case 0:
+                                emoteTitle = "NEVER GONNA'";
+                                break;
+                            case -1:
+                                emoteTitle = "SAY SO";
+                                break;
+                            case -2:
+                                emoteTitle = "TAKE IT SLOW";
+                                break;
+                            case -3:
+                                emoteTitle = "MACARENA";
+                                break;
+                            case -4:
+                                emoteTitle = "CUPID'S ARROW";
+                                break;
+                            case -5:
+                                emoteTitle = "GANGNAM STYLE";
+                                break;
+                            case -6:
+                            case 2:
+                                emoteTitle = "REAL SLIM SHADY";
+                                break;
+                            case 1:
+                                emoteTitle = "PARTY HIPS";
                                 break;
                         }
                     }
@@ -339,6 +521,142 @@ namespace FortniteEmoteWheel.Classes
                                 break;
                             case 1:
                                 Plugin.Emote("The Renegade", "Emote_Just_Home_Music_Loop", -1f, true);
+                                break;
+                        }
+                    }
+                    if (Page == 3)
+                    {
+                        switch (Selection)
+                        {
+                            case 0:
+                                Plugin.Emote("Jabba Switchway Loop", "Emote_January_Bop_Loop", -1f, true);
+                                break;
+                            case -1:
+                                Plugin.Emote("InfinidabLoop", "infinitedab", -1f, true);
+                                break;
+                            case -2:
+                                Plugin.Emote("Celebrate Me", "IP_Emote_Cottontail_Loop", -1f, true);
+                                break;
+                            case -3:
+                                Plugin.Emote("BillyBounce", "billybounce", -1f, true);
+                                break;
+                            case -4:
+                                Plugin.Emote("WindmillFloss", "whirlfloss", -1f, true);
+                                break;
+                            case -5:
+                                Plugin.Emote("Hype", "hype", -1f, true);
+                                break;
+                            case -6:
+                            case 2:
+                                Plugin.Emote("Entranced", "entranced", -1f, true);
+                                break;
+                            case 1:
+                                Plugin.Emote("LaughItUp", "Emote_Laugh_01");
+                                break;
+                        }
+                    }
+                    if (Page == 4)
+                    {
+                        switch (Selection)
+                        {
+                            case 0:
+                                Plugin.Emote("SnoopWalk", "snoopwalk", -1f, true);
+                                break;
+                            case -1:
+                                Plugin.Emote("Scenario", "scenario", -1f, true);
+                                break;
+                            case -2:
+                                Plugin.Emote("Night Out", "nightout", -1f, true);
+                                break;
+                            case -3:
+                                Plugin.Emote("pointandstrut", "pointandstrut", -1f, true);
+                                break;
+                            case -4:
+                                Plugin.Emote("moongazer", "moongazer", -1f, true);
+                                break;
+                            case -5:
+                                Plugin.Emote("Rollie", "Emote_Twist_Daytona_Music_Loop_01", -1f, true);
+                                break;
+                            case -6:
+                            case 2:
+                                Plugin.Emote("HEEL", "heelclickbreakdown", -1f, true);
+                                break;
+                            case 1:
+                                Plugin.Emote("SwitchStep", "switchstep", -1f, true);
+                                break;
+                        }
+                    }
+                    if (Page == 5)
+                    {
+                        switch (Selection)
+                        {
+                            case 0:
+                                Plugin.Emote("Freestylin'", "freestylin", -1f, true);
+                                break;
+                            case -1:
+                                Plugin.Emote("Go Mufasa", "Emote_Sandwich_Bop_Loop", -1f, true);
+                                break;
+                            case -2:
+                                Plugin.Emote("jubislide", "Emote_GoodbyeUpbeat_Loop", -1f, true);
+                                break;
+                            case -3:
+                                Plugin.Emote("RunningMan", "Athena_Emote_Music_RunningMan", -1f, true);
+                                break;
+                            case -4:
+                                Plugin.Emote("Zany", "zany", -1f, true);
+                                break;
+                            case -5:
+                                Plugin.Emote("pumpernickel2", "Athena_Emotes_Music_PumpDance", -1f, true);
+                                break;
+                            case -6:
+                            case 2:
+                                Plugin.Emote("RideThePony", "ponyup", -1f, true);
+                                break;
+                            case 1:
+                                Plugin.Emote("HULA", "emote_hula_01", -1f, true);
+                                break;
+                        }
+                    }
+                    if (Page == 6)
+                    {
+                        switch (Selection)
+                        {
+                            case 0:
+                                GorillaTagger.Instance.offlineVRRig.leftIndex.calcT = 1f;
+                                GorillaTagger.Instance.offlineVRRig.leftMiddle.calcT = 1f;
+
+                                GorillaTagger.Instance.offlineVRRig.rightIndex.calcT = 1f;
+                                GorillaTagger.Instance.offlineVRRig.rightMiddle.calcT = 1f;
+
+                                GorillaTagger.Instance.offlineVRRig.rightIndex.LerpFinger(1f, false);
+                                GorillaTagger.Instance.offlineVRRig.rightMiddle.LerpFinger(1f, false);
+
+                                GorillaTagger.Instance.offlineVRRig.leftIndex.LerpFinger(1f, false);
+                                GorillaTagger.Instance.offlineVRRig.leftMiddle.LerpFinger(1f, false);
+
+                                Plugin.Emote("Never Gonna Loop", "Emote_NeverGonna_Loop_01", -1f, true);
+                                break;
+                            case -1:
+                                Plugin.Emote("Say So", "Emote_HotPink_Loop_258", -1f, true);
+                                break;
+                            case -2:
+                                Plugin.Emote("Takeitslow", "takeitslow", -1f, true);
+                                break;
+                            case -3:
+                                Plugin.Emote("Macarena", "Emote_Macaroon_Music_Loop_01", -1f, true);
+                                break;
+                            case -4:
+                                Plugin.Emote("cupid", "cupid", -1f, true);
+                                break;
+                            case -5:
+                                Plugin.Emote("gangnam", "gangnam", -1f, true);
+                                break;
+                            case -6:
+                            case 2:
+                                Plugin.Emote("realslimshady", "slim", -1f, true);
+                                break;
+                            case 1:
+                                Plugin.Emote("partyhips", "partyhips", -1f, true);
                                 break;
                         }
                     }

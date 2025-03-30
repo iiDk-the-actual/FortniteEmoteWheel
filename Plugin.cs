@@ -2,7 +2,6 @@
 using GorillaTag.CosmeticSystem;
 using Photon.Pun;
 using Photon.Voice.Unity;
-using Steamworks;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -137,12 +136,12 @@ namespace FortniteEmoteWheel
             DisableCosmetics();
 
             PreviousSerializationRate = PhotonNetwork.SerializationRate;
-            PhotonNetwork.SerializationRate *= 4;
+            PhotonNetwork.SerializationRate *= 3;
 
             Play2DAudio(LoadSoundFromResource("play"), 0.5f);
 
             archivePosition = GorillaTagger.Instance.transform.position;
-            GorillaLocomotion.Player.Instance.rightControllerTransform.parent.rotation *= Quaternion.Euler(0f, 180f, 0f);
+            GorillaLocomotion.GTPlayer.Instance.rightControllerTransform.parent.rotation *= Quaternion.Euler(0f, 180f, 0f);
 
             Kyle = LoadAsset("Rig"); 
             Kyle.transform.position = GorillaTagger.Instance.offlineVRRig.transform.Find("RigAnchor/rig/body").position - new Vector3(0f, 1.15f, 0f);
@@ -236,7 +235,7 @@ namespace FortniteEmoteWheel
                     }
 
                     GorillaTagger.Instance.transform.position = archivePosition;
-                    GorillaLocomotion.Player.Instance.rightControllerTransform.parent.rotation *= Quaternion.Euler(0f, 180f, 0f);
+                    GorillaLocomotion.GTPlayer.Instance.rightControllerTransform.parent.rotation *= Quaternion.Euler(0f, 180f, 0f);
                 }
             }
         }
