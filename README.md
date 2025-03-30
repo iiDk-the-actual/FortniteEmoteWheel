@@ -1,6 +1,6 @@
 # FortniteEmoteWheel
 The emote wheel from Fortnite, directly ported to Gorilla Tag.
-<img src="https://i.imgur.com/E2mRwj9.png">
+<img src="https://i.imgur.com/eK6gu0T.png">
 
 ---
 
