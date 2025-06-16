@@ -99,7 +99,7 @@ namespace FortniteEmoteWheel
                 GorillaTagger.Instance.offlineVRRig.transform.Find("RigAnchor/rig/body/head/gorillaface").gameObject.layer = LayerMask.NameToLayer("Default");
                 foreach (GameObject Cosmetic in GorillaTagger.Instance.offlineVRRig.cosmetics)
                 {
-                    if (Cosmetic.activeSelf && Cosmetic.transform.parent == GorillaTagger.Instance.offlineVRRig.mainCamera.transform)
+                    if (Cosmetic.activeSelf && Cosmetic.transform.parent == GorillaTagger.Instance.offlineVRRig.mainCamera.transform.Find("HeadCosmetics"))
                     {
                         portedCosmetics.Add(Cosmetic);
                         Cosmetic.transform.SetParent(GorillaTagger.Instance.offlineVRRig.headMesh.transform, false);
@@ -114,7 +114,7 @@ namespace FortniteEmoteWheel
             GorillaTagger.Instance.offlineVRRig.transform.Find("RigAnchor/rig/body/head/gorillaface").gameObject.layer = LayerMask.NameToLayer("MirrorOnly");
             foreach (GameObject Cosmetic in portedCosmetics)
             {
-                Cosmetic.transform.SetParent(GorillaTagger.Instance.offlineVRRig.mainCamera.transform, false);
+                Cosmetic.transform.SetParent(GorillaTagger.Instance.offlineVRRig.mainCamera.transform.Find("HeadCosmetics"), false);
                 Cosmetic.transform.localPosition -= new Vector3(0f, 0.1333f, 0.1f);
             }
             portedCosmetics.Clear();

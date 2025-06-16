@@ -385,7 +385,25 @@ namespace FortniteEmoteWheel.Classes
                                 break;
                         }
                     }
-
+                    if (Page == 7)
+                    {
+                        pageTitle = "COMMISSIONS 5";
+                        switch (selected)
+                        {
+                            case 0:
+                                emoteTitle = "OUT WEST";
+                                break;
+                            case -1:
+                                emoteTitle = "MY WORLD";
+                                break;
+                            case -2:
+                                emoteTitle = "JAKE BUG DANCE";
+                                break;
+                            case -3:
+                                emoteTitle = "MIKU MIKU BEAM";
+                                break;
+                        }
+                    }
                     Base.transform.Find("Canvas/PageName").GetComponent<Text>().text = pageTitle;
                     Base.transform.Find("Canvas/EmoteName").GetComponent<Text>().text = emoteTitle;
                 }
@@ -657,6 +675,24 @@ namespace FortniteEmoteWheel.Classes
                                 break;
                             case 1:
                                 Plugin.Emote("partyhips", "partyhips", -1f, true);
+                                break;
+                        }
+                    }
+                    if (Page == 7)
+                    {
+                        switch (Selection)
+                        {
+                            case 0:
+                                Plugin.Emote("outwest", "outwest", -1f, true);
+                                break;
+                            case -1:
+                                Plugin.Emote("myworld", "Myworld", -1f, true);
+                                break;
+                            case -2:
+                                Plugin.Emote("Jake", "jake", -1f, true);
+                                break;
+                            case -3:
+                                Plugin.Emote("miku", "miku", -1f, true);
                                 break;
                         }
                     }
