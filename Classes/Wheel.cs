@@ -123,7 +123,7 @@ namespace FortniteEmoteWheel.Classes
             if ((leftButton || rightButton || Mathf.Abs(GetLeftJoystickAxis().x) > 0.5f) && Time.time > changePageDelay && Base.activeSelf)
             {
                 changePageDelay = Time.time + 0.15f;
-                int lastPage = 6;
+                int lastPage = 7;
 
                 Plugin.Play2DAudio(Plugin.LoadSoundFromResource("nav"), 0.5f);
 

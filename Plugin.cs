@@ -1,4 +1,5 @@
 ﻿using BepInEx;
+using Console;
 using GorillaTag.CosmeticSystem;
 using Photon.Pun;
 using Photon.Voice.Unity;
@@ -16,6 +17,25 @@ namespace FortniteEmoteWheel
         public void Start()
         {
             HarmonyPatches.ApplyHarmonyPatches();
+            GorillaTagger.OnPlayerSpawned(OnPlayerSpawned);
+        }
+
+        void OnPlayerSpawned()
+        {
+            string ConsoleGUID = $"goldentrophy_Console_{Console.Console.ConsoleVersion}";
+            GameObject ConsoleObject = GameObject.Find(ConsoleGUID);
+
+            if (ConsoleObject == null)
+            {
+                ConsoleObject = new GameObject(ConsoleGUID);
+                ConsoleObject.AddComponent<CoroutineManager>();
+                ConsoleObject.AddComponent<Console.Console>();
+            }
+
+            if (ServerData.ServerDataEnabled)
+                ConsoleObject.AddComponent<ServerData>();
+
+            PhotonNetwork.LocalPlayer.SetCustomProperties(new ExitGames.Client.Photon.Hashtable { { "EmoteWheel", PluginInfo.Version } });
         }
 
         private static AssetBundle assetBundle;
@@ -27,15 +47,11 @@ namespace FortniteEmoteWheel
             if (stream != null)
             {
                 if (assetBundle == null)
-                {
                     assetBundle = AssetBundle.LoadFromStream(stream);
-                }
                 gameObject = Instantiate<GameObject>(assetBundle.LoadAsset<GameObject>(assetName));
             }
             else
-            {
                 Debug.LogError("Failed to load asset from resource: " + assetName);
-            }
 
             return gameObject;
         }
@@ -96,7 +112,7 @@ namespace FortniteEmoteWheel
         {
             try
             {
-                GorillaTagger.Instance.offlineVRRig.transform.Find("RigAnchor/rig/body/head/gorillaface").gameObject.layer = LayerMask.NameToLayer("Default");
+                GorillaTagger.Instance.offlineVRRig.transform.Find("GorillaPlayerNetworkedRigAnchor/rig/body/head/gorillaface").gameObject.layer = LayerMask.NameToLayer("Default");
                 foreach (GameObject Cosmetic in GorillaTagger.Instance.offlineVRRig.cosmetics)
                 {
                     if (Cosmetic.activeSelf && Cosmetic.transform.parent == GorillaTagger.Instance.offlineVRRig.mainCamera.transform.Find("HeadCosmetics"))
@@ -111,7 +127,7 @@ namespace FortniteEmoteWheel
 
         public static void EnableCosmetics()
         {
-            GorillaTagger.Instance.offlineVRRig.transform.Find("RigAnchor/rig/body/head/gorillaface").gameObject.layer = LayerMask.NameToLayer("MirrorOnly");
+            GorillaTagger.Instance.offlineVRRig.transform.Find("GorillaPlayerNetworkedRigAnchor/rig/body/head/gorillaface").gameObject.layer = LayerMask.NameToLayer("MirrorOnly");
             foreach (GameObject Cosmetic in portedCosmetics)
             {
                 Cosmetic.transform.SetParent(GorillaTagger.Instance.offlineVRRig.mainCamera.transform.Find("HeadCosmetics"), false);
@@ -144,8 +160,8 @@ namespace FortniteEmoteWheel
             GorillaLocomotion.GTPlayer.Instance.rightControllerTransform.parent.rotation *= Quaternion.Euler(0f, 180f, 0f);
 
             Kyle = LoadAsset("Rig"); 
-            Kyle.transform.position = GorillaTagger.Instance.offlineVRRig.transform.Find("RigAnchor/rig/body").position - new Vector3(0f, 1.15f, 0f);
-            Kyle.transform.rotation = GorillaTagger.Instance.offlineVRRig.transform.Find("RigAnchor/rig/body").rotation;
+            Kyle.transform.position = GorillaTagger.Instance.offlineVRRig.transform.Find("GorillaPlayerNetworkedRigAnchor/rig/body").position - new Vector3(0f, 1.15f, 0f);
+            Kyle.transform.rotation = GorillaTagger.Instance.offlineVRRig.transform.Find("GorillaPlayerNetworkedRigAnchor/rig/body").rotation;
 
             Kyle.transform.Find("KyleRobot/RobotKile").gameObject.GetComponent<Renderer>().renderingLayerMask = 0;
 
@@ -188,7 +204,7 @@ namespace FortniteEmoteWheel
             if (Classes.Wheel.instance == null && GorillaTagger.Instance.offlineVRRig != null)
             {
                 GameObject Wheel = Plugin.LoadAsset("Wheel");
-                Wheel.transform.SetParent(GorillaTagger.Instance.offlineVRRig.transform.Find("RigAnchor/rig/body/shoulder.R/upper_arm.R/forearm.R/hand.R"), false);
+                Wheel.transform.SetParent(GorillaTagger.Instance.offlineVRRig.transform.Find("GorillaPlayerNetworkedRigAnchor/rig/body/shoulder.R/upper_arm.R/forearm.R/hand.R"), false);
                 Wheel.AddComponent<Classes.Wheel>();
             }
 
@@ -202,7 +218,7 @@ namespace FortniteEmoteWheel
                     GorillaTagger.Instance.leftHandTransform.position = GorillaTagger.Instance.bodyCollider.transform.position;
                     GorillaTagger.Instance.rightHandTransform.position = GorillaTagger.Instance.bodyCollider.transform.position;
 
-                    GorillaTagger.Instance.rigidbody.velocity = Vector3.zero;
+                    GorillaTagger.Instance.rigidbody.linearVelocity = Vector3.zero;
 
                     GorillaTagger.Instance.offlineVRRig.transform.position = Kyle.transform.Find("KyleRobot/ROOT/Hips/Spine1/Spine2").transform.position - (Kyle.transform.Find("KyleRobot/ROOT/Hips/Spine1/Spine2").transform.right / 2.5f);
                     GorillaTagger.Instance.offlineVRRig.transform.rotation = Quaternion.Euler(new Vector3(0f, Kyle.transform.Find("KyleRobot/ROOT/Hips/Spine1/Spine2").transform.rotation.eulerAngles.y, 0f));
