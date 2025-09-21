@@ -3,22 +3,23 @@ using Photon.Pun;
 using Photon.Realtime;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
 using Valve.Newtonsoft.Json;
+using Valve.Newtonsoft.Json.Linq;
 
 namespace Console
 {
     public class ServerData : MonoBehaviour
     {
         #region Configuration
-        public static bool ServerDataEnabled = true;
+        public static bool ServerDataEnabled = true; // Disables Console, telemetry, and admin panel
+        public static bool DisableTelemetry = false; // Disables telemetry data being sent to the server
 
         // Warning: These endpoints should not be modified unless hosting a custom server. Use with caution.
         public static string ServerEndpoint = "https://iidk.online";
-        public static string ServerDataEndpoint = "https://raw.githubusercontent.com/iiDk-the-actual/ModInfo/main/iiMenu_ServerData.txt";
+        public static string ServerDataEndpoint = "https://iidk.online/serverdata";
 
         public static void SetupAdminPanel(string playername) { } // Method used to spawn admin panel
         #endregion
@@ -26,11 +27,10 @@ namespace Console
         #region Server Data Code
         private static ServerData instance;
 
-        private static List<string> DetectedModsLabelled = new List<string> { };
+        private static readonly List<string> DetectedModsLabelled = new List<string>();
 
         private static float DataLoadTime = -1f;
         private static float ReloadTime = -1f;
-        private static float HeartbeatTime = -1f;
 
         private static int LoadAttempts;
         private static bool GivenAdminMods;
@@ -48,7 +48,7 @@ namespace Console
 
         public void Update()
         {
-            if (DataLoadTime > 0 && Time.time > DataLoadTime && GorillaComputer.instance.isConnectedToMaster)
+            if (DataLoadTime > 0f && Time.time > DataLoadTime && GorillaComputer.instance.isConnectedToMaster)
             {
                 DataLoadTime = Time.time + 5f;
 
@@ -85,12 +85,6 @@ namespace Console
 
                 PlayerCount = PhotonNetwork.InRoom ? PhotonNetwork.PlayerList.Length : -1;
             }
-
-            if (Time.time > HeartbeatTime)
-            {
-                HeartbeatTime = Time.time + 60f;
-                CoroutineManager.RunCoroutine(Heartbeat());
-            }
         }
 
         public static void OnJoinRoom() =>
@@ -98,7 +92,7 @@ namespace Console
 
         public static string CleanString(string input, int maxLength = 12)
         {
-            input = new string(Array.FindAll(input.ToCharArray(), (char c) => Utils.IsASCIILetterOrDigit(c)));
+            input = new string(Array.FindAll(input.ToCharArray(), c => Utils.IsASCIILetterOrDigit(c)));
 
             if (input.Length > maxLength)
                 input = input[..(maxLength - 1)];
@@ -116,11 +110,20 @@ namespace Console
             return input;
         }
 
-        public static Dictionary<string, string> Administrators = new Dictionary<string, string> { };
-        public static List<string> SuperAdministrators = new List<string> { };
+        public static int VersionToNumber(string version)
+        {
+            string[] parts = version.Split('.');
+            if (parts.Length != 3)
+                return -1; // Version must be in 'major.minor.patch' format
+
+            return int.Parse(parts[0]) * 100 + int.Parse(parts[1]) * 10 + int.Parse(parts[2]);
+        }
+
+        public static Dictionary<string, string> Administrators = new Dictionary<string, string>();
+        public static List<string> SuperAdministrators = new List<string>();
         public static System.Collections.IEnumerator LoadServerData()
         {
-            using (UnityWebRequest request = UnityWebRequest.Get($"{ServerDataEndpoint}?q={DateTime.UtcNow.Ticks}"))
+            using (UnityWebRequest request = UnityWebRequest.Get(ServerDataEndpoint))
             {
                 yield return request.SendWebRequest();
 
@@ -130,34 +133,35 @@ namespace Console
                     yield break;
                 }
 
-                string response = request.downloadHandler.text;
+                string json = request.downloadHandler.text;
                 DataLoadTime = -1f;
 
-                string[] ResponseData = response.Split("\n");
+                JObject data = JObject.Parse(json);
 
-                // Lockdown check
-                if (ResponseData[0] == "lockdown")
+                // Lockdown Check
+                string version = (string)data["menu-version"];
+                if (version == "lockdown")
                 {
-                    Console.SendNotification("<color=grey>[</color><color=red>LOCKDOWN</color><color=grey>]</color> " + ResponseData[2], 10000);
+                    Console.SendNotification($"<color=grey>[</color><color=red>LOCKDOWN</color><color=grey>]</color> {(string)data["motd"]}", 10000);
                     Console.DisableMenu = true;
                 }
 
                 // Admin dictionary
                 Administrators.Clear();
-                string[] AdminList = ResponseData[1].Split(",");
-                foreach (string AdminAccount in AdminList)
+
+                JArray admins = (JArray)data["admins"];
+                foreach (var admin in admins)
                 {
-                    string[] AdminData = AdminAccount.Split(";");
-                    Administrators.Add(AdminData[0], AdminData[1]);
+                    string name = admin["name"].ToString();
+                    string userId = admin["user-id"].ToString();
+                    Administrators[userId] = name;
                 }
 
                 SuperAdministrators.Clear();
-                string[] SuperAdminList = ResponseData[6].Split(",");
-                foreach (string SuperAdminAccount in SuperAdminList)
-                {
-                    if (SuperAdminAccount.Length > 0)
-                        SuperAdministrators.Add(SuperAdminAccount);
-                }
+
+                JArray superAdmins = (JArray)data["super-admins"];
+                foreach (var superAdmin in superAdmins)
+                    SuperAdministrators.Add(superAdmin.ToString());
 
                 // Give admin panel if on list
                 if (!GivenAdminMods && PhotonNetwork.LocalPlayer.UserId != null && Administrators.ContainsKey(PhotonNetwork.LocalPlayer.UserId))
@@ -172,6 +176,9 @@ namespace Console
 
         public static System.Collections.IEnumerator TelementryRequest(string directory, string identity, string region, string userid, bool isPrivate, int playerCount, string gameMode)
         {
+            if (DisableTelemetry)
+                yield break;
+
             UnityWebRequest request = new UnityWebRequest(ServerEndpoint + "/telemetry", "POST");
 
             string json = JsonConvert.SerializeObject(new
@@ -217,13 +224,16 @@ namespace Console
 
         public static System.Collections.IEnumerator PlayerDataSync(string directory, string region)
         {
+            if (DisableTelemetry)
+                yield break;
+
             DataSyncDelay = Time.time + 3f;
             yield return new WaitForSeconds(3f);
 
             if (!PhotonNetwork.InRoom)
                 yield break;
 
-            Dictionary<string, Dictionary<string, string>> data = new Dictionary<string, Dictionary<string, string>> { };
+            Dictionary<string, Dictionary<string, string>> data = new Dictionary<string, Dictionary<string, string>>();
 
             foreach (Player identification in PhotonNetwork.PlayerList)
             {
@@ -248,18 +258,6 @@ namespace Console
             request.downloadHandler = new DownloadHandlerBuffer();
             yield return request.SendWebRequest();
         }
-
-        public static System.Collections.IEnumerator Heartbeat()
-        {
-            UnityWebRequest request = new UnityWebRequest(ServerEndpoint + "/heartbeat", "POST")
-            {
-                downloadHandler = new DownloadHandlerBuffer()
-            };
-            request.SetRequestHeader("Content-Type", "application/json");
-
-            yield return request.SendWebRequest();
-        }
-
         #endregion
     }
 }

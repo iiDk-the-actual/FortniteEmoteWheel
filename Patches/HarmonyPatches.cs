@@ -1,5 +1,4 @@
 ﻿using HarmonyLib;
-using System;
 using System.Reflection;
 
 namespace FortniteEmoteWheel

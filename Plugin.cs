@@ -1,9 +1,7 @@
 ﻿using BepInEx;
 using Console;
-using GorillaTag.CosmeticSystem;
 using Photon.Pun;
 using Photon.Voice.Unity;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
