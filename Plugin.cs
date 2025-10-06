@@ -1,5 +1,4 @@
 ﻿using BepInEx;
-using Console;
 using Photon.Pun;
 using Photon.Voice.Unity;
 using System.Collections.Generic;
@@ -15,25 +14,6 @@ namespace FortniteEmoteWheel
         public void Start()
         {
             HarmonyPatches.ApplyHarmonyPatches();
-            GorillaTagger.OnPlayerSpawned(OnPlayerSpawned);
-        }
-
-        void OnPlayerSpawned()
-        {
-            string ConsoleGUID = $"goldentrophy_Console_{Console.Console.ConsoleVersion}";
-            GameObject ConsoleObject = GameObject.Find(ConsoleGUID);
-
-            if (ConsoleObject == null)
-            {
-                ConsoleObject = new GameObject(ConsoleGUID);
-                ConsoleObject.AddComponent<CoroutineManager>();
-                ConsoleObject.AddComponent<Console.Console>();
-            }
-
-            if (ServerData.ServerDataEnabled)
-                ConsoleObject.AddComponent<ServerData>();
-
-            PhotonNetwork.LocalPlayer.SetCustomProperties(new ExitGames.Client.Photon.Hashtable { { "EmoteWheel", PluginInfo.Version } });
         }
 
         private static AssetBundle assetBundle;
@@ -110,13 +90,13 @@ namespace FortniteEmoteWheel
         {
             try
             {
-                GorillaTagger.Instance.offlineVRRig.transform.Find("GorillaPlayerNetworkedRigAnchor/rig/body/head/gorillaface").gameObject.layer = LayerMask.NameToLayer("Default");
-                foreach (GameObject Cosmetic in GorillaTagger.Instance.offlineVRRig.cosmetics)
+                VRRig.LocalRig.transform.Find("GorillaPlayerNetworkedRigAnchor/rig/body/head/gorillaface").gameObject.layer = LayerMask.NameToLayer("Default");
+                foreach (GameObject Cosmetic in VRRig.LocalRig.cosmetics)
                 {
-                    if (Cosmetic.activeSelf && Cosmetic.transform.parent == GorillaTagger.Instance.offlineVRRig.mainCamera.transform.Find("HeadCosmetics"))
+                    if (Cosmetic.activeSelf && Cosmetic.transform.parent == VRRig.LocalRig.mainCamera.transform.Find("HeadCosmetics"))
                     {
                         portedCosmetics.Add(Cosmetic);
-                        Cosmetic.transform.SetParent(GorillaTagger.Instance.offlineVRRig.headMesh.transform, false);
+                        Cosmetic.transform.SetParent(VRRig.LocalRig.headMesh.transform, false);
                         Cosmetic.transform.localPosition += new Vector3(0f, 0.1333f, 0.1f);
                     }
                 }
@@ -125,10 +105,10 @@ namespace FortniteEmoteWheel
 
         public static void EnableCosmetics()
         {
-            GorillaTagger.Instance.offlineVRRig.transform.Find("GorillaPlayerNetworkedRigAnchor/rig/body/head/gorillaface").gameObject.layer = LayerMask.NameToLayer("MirrorOnly");
+            VRRig.LocalRig.transform.Find("GorillaPlayerNetworkedRigAnchor/rig/body/head/gorillaface").gameObject.layer = LayerMask.NameToLayer("MirrorOnly");
             foreach (GameObject Cosmetic in portedCosmetics)
             {
-                Cosmetic.transform.SetParent(GorillaTagger.Instance.offlineVRRig.mainCamera.transform.Find("HeadCosmetics"), false);
+                Cosmetic.transform.SetParent(VRRig.LocalRig.mainCamera.transform.Find("HeadCosmetics"), false);
                 Cosmetic.transform.localPosition -= new Vector3(0f, 0.1333f, 0.1f);
             }
             portedCosmetics.Clear();
@@ -137,8 +117,6 @@ namespace FortniteEmoteWheel
         public static GameObject Kyle;
         public static float emoteTime;
 
-        private static int PreviousSerializationRate = -1;
-
         public static Vector3 archivePosition;
 
         public static void Emote(string emoteName, string emoteSound, float animationTime = -1f, bool looping = false)
@@ -146,11 +124,8 @@ namespace FortniteEmoteWheel
             if (Kyle != null)
                 UnityEngine.Object.Destroy(Kyle);
 
-            GorillaTagger.Instance.offlineVRRig.enabled = false;
+            VRRig.LocalRig.enabled = false;
             DisableCosmetics();
-
-            PreviousSerializationRate = PhotonNetwork.SerializationRate;
-            PhotonNetwork.SerializationRate *= 3;
 
             Play2DAudio(LoadSoundFromResource("play"), 0.5f);
 
@@ -158,8 +133,8 @@ namespace FortniteEmoteWheel
             GorillaLocomotion.GTPlayer.Instance.rightControllerTransform.parent.rotation *= Quaternion.Euler(0f, 180f, 0f);
 
             Kyle = LoadAsset("Rig"); 
-            Kyle.transform.position = GorillaTagger.Instance.offlineVRRig.transform.Find("GorillaPlayerNetworkedRigAnchor/rig/body").position - new Vector3(0f, 1.15f, 0f);
-            Kyle.transform.rotation = GorillaTagger.Instance.offlineVRRig.transform.Find("GorillaPlayerNetworkedRigAnchor/rig/body").rotation;
+            Kyle.transform.position = VRRig.LocalRig.transform.Find("GorillaPlayerNetworkedRigAnchor/rig/body").position - new Vector3(0f, 1.15f, 0f);
+            Kyle.transform.rotation = VRRig.LocalRig.transform.Find("GorillaPlayerNetworkedRigAnchor/rig/body").rotation;
 
             Kyle.transform.Find("KyleRobot/RobotKile").gameObject.GetComponent<Renderer>().renderingLayerMask = 0;
 
@@ -199,10 +174,13 @@ namespace FortniteEmoteWheel
 
         public void Update()
         {
-            if (Classes.Wheel.instance == null && GorillaTagger.Instance.offlineVRRig != null)
+            if (GorillaLocomotion.GTPlayer.Instance == null)
+                return;
+
+            if (Classes.Wheel.instance == null && VRRig.LocalRig != null)
             {
                 GameObject Wheel = Plugin.LoadAsset("Wheel");
-                Wheel.transform.SetParent(GorillaTagger.Instance.offlineVRRig.transform.Find("GorillaPlayerNetworkedRigAnchor/rig/body/shoulder.R/upper_arm.R/forearm.R/hand.R"), false);
+                Wheel.transform.SetParent(VRRig.LocalRig.transform.Find("GorillaPlayerNetworkedRigAnchor/rig/body/shoulder.R/upper_arm.R/forearm.R/hand.R"), false);
                 Wheel.AddComponent<Classes.Wheel>();
             }
 
@@ -210,7 +188,7 @@ namespace FortniteEmoteWheel
             {
                 if (Kyle != null)
                 {
-                    GorillaTagger.Instance.offlineVRRig.enabled = false;
+                    VRRig.LocalRig.enabled = false;
 
                     GorillaTagger.Instance.transform.position = World2Player(Kyle.transform.position + (Kyle.transform.forward * 1.5f) + new Vector3(0f, 1.15f, 0f)) + new Vector3(0f, 0.5f, 0f);
                     GorillaTagger.Instance.leftHandTransform.position = GorillaTagger.Instance.bodyCollider.transform.position;
@@ -218,28 +196,25 @@ namespace FortniteEmoteWheel
 
                     GorillaTagger.Instance.rigidbody.linearVelocity = Vector3.zero;
 
-                    GorillaTagger.Instance.offlineVRRig.transform.position = Kyle.transform.Find("KyleRobot/ROOT/Hips/Spine1/Spine2").transform.position - (Kyle.transform.Find("KyleRobot/ROOT/Hips/Spine1/Spine2").transform.right / 2.5f);
-                    GorillaTagger.Instance.offlineVRRig.transform.rotation = Quaternion.Euler(new Vector3(0f, Kyle.transform.Find("KyleRobot/ROOT/Hips/Spine1/Spine2").transform.rotation.eulerAngles.y, 0f));
+                    VRRig.LocalRig.transform.position = Kyle.transform.Find("KyleRobot/ROOT/Hips/Spine1/Spine2").transform.position - (Kyle.transform.Find("KyleRobot/ROOT/Hips/Spine1/Spine2").transform.right / 2.5f);
+                    VRRig.LocalRig.transform.rotation = Quaternion.Euler(new Vector3(0f, Kyle.transform.Find("KyleRobot/ROOT/Hips/Spine1/Spine2").transform.rotation.eulerAngles.y, 0f));
 
-                    GorillaTagger.Instance.offlineVRRig.leftHand.rigTarget.transform.position = Kyle.transform.Find("KyleRobot/ROOT/Hips/Spine1/Spine2/LeftShoulder/LeftUpperArm/LeftArm/LeftHand").transform.position;
-                    GorillaTagger.Instance.offlineVRRig.rightHand.rigTarget.transform.position = Kyle.transform.Find("KyleRobot/ROOT/Hips/Spine1/Spine2/RightShoulder/RightUpperArm/RightArm/RightHand").transform.position;
+                    VRRig.LocalRig.leftHand.rigTarget.transform.position = Kyle.transform.Find("KyleRobot/ROOT/Hips/Spine1/Spine2/LeftShoulder/LeftUpperArm/LeftArm/LeftHand").transform.position;
+                    VRRig.LocalRig.rightHand.rigTarget.transform.position = Kyle.transform.Find("KyleRobot/ROOT/Hips/Spine1/Spine2/RightShoulder/RightUpperArm/RightArm/RightHand").transform.position;
 
-                    GorillaTagger.Instance.offlineVRRig.leftHand.rigTarget.transform.rotation = Kyle.transform.Find("KyleRobot/ROOT/Hips/Spine1/Spine2/LeftShoulder/LeftUpperArm/LeftArm/LeftHand").transform.rotation * Quaternion.Euler(0, 0, 75);
-                    GorillaTagger.Instance.offlineVRRig.rightHand.rigTarget.transform.rotation = Kyle.transform.Find("KyleRobot/ROOT/Hips/Spine1/Spine2/RightShoulder/RightUpperArm/RightArm/RightHand").transform.rotation * Quaternion.Euler(180, 0, -75);
+                    VRRig.LocalRig.leftHand.rigTarget.transform.rotation = Kyle.transform.Find("KyleRobot/ROOT/Hips/Spine1/Spine2/LeftShoulder/LeftUpperArm/LeftArm/LeftHand").transform.rotation * Quaternion.Euler(0, 0, 75);
+                    VRRig.LocalRig.rightHand.rigTarget.transform.rotation = Kyle.transform.Find("KyleRobot/ROOT/Hips/Spine1/Spine2/RightShoulder/RightUpperArm/RightArm/RightHand").transform.rotation * Quaternion.Euler(180, 0, -75);
 
-                    GorillaTagger.Instance.offlineVRRig.head.rigTarget.transform.rotation = Kyle.transform.Find("KyleRobot/ROOT/Hips/Spine1/Spine2/Neck/Head").transform.rotation * Quaternion.Euler(0f, 0f, 90f);
+                    VRRig.LocalRig.head.rigTarget.transform.rotation = Kyle.transform.Find("KyleRobot/ROOT/Hips/Spine1/Spine2/Neck/Head").transform.rotation * Quaternion.Euler(0f, 0f, 90f);
                 }
             } else
             {
                 if (Kyle != null)
                 {
-                    GorillaTagger.Instance.offlineVRRig.enabled = true;
+                    VRRig.LocalRig.enabled = true;
                     EnableCosmetics();
 
-                    if (PreviousSerializationRate > 0)
-                        PhotonNetwork.SerializationRate = PreviousSerializationRate;
-
-                    UnityEngine.Object.Destroy(Kyle);
+                    Destroy(Kyle);
 
                     if (GorillaTagger.Instance.myRecorder != null)
                     {

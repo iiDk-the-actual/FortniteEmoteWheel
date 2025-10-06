@@ -422,8 +422,8 @@ namespace FortniteEmoteWheel.Classes
                                 Plugin.Emote("Dance Moves", "default");
                                 break;
                             case -1:
-                                GorillaTagger.Instance.offlineVRRig.rightMiddle.calcT = 1f;
-                                GorillaTagger.Instance.offlineVRRig.rightMiddle.LerpFinger(1f, false);
+                                VRRig.LocalRig.rightMiddle.calcT = 1f;
+                                VRRig.LocalRig.rightMiddle.LerpFinger(1f, false);
                                 Plugin.Emote("TakeTheL", "takethel", -1f, true);
                                 break;
                             case -2:
@@ -452,41 +452,41 @@ namespace FortniteEmoteWheel.Classes
                         switch (Selection)
                         {
                             case 0:
-                                GorillaTagger.Instance.offlineVRRig.leftIndex.calcT = 1f;
-                                GorillaTagger.Instance.offlineVRRig.leftMiddle.calcT = 1f;
+                                VRRig.LocalRig.leftIndex.calcT = 1f;
+                                VRRig.LocalRig.leftMiddle.calcT = 1f;
 
-                                GorillaTagger.Instance.offlineVRRig.rightIndex.calcT = 1f;
-                                GorillaTagger.Instance.offlineVRRig.rightMiddle.calcT = 1f;
+                                VRRig.LocalRig.rightIndex.calcT = 1f;
+                                VRRig.LocalRig.rightMiddle.calcT = 1f;
 
-                                GorillaTagger.Instance.offlineVRRig.rightIndex.LerpFinger(1f, false);
-                                GorillaTagger.Instance.offlineVRRig.rightMiddle.LerpFinger(1f, false);
+                                VRRig.LocalRig.rightIndex.LerpFinger(1f, false);
+                                VRRig.LocalRig.rightMiddle.LerpFinger(1f, false);
 
-                                GorillaTagger.Instance.offlineVRRig.leftIndex.LerpFinger(1f, false);
-                                GorillaTagger.Instance.offlineVRRig.leftMiddle.LerpFinger(1f, false);
+                                VRRig.LocalRig.leftIndex.LerpFinger(1f, false);
+                                VRRig.LocalRig.leftMiddle.LerpFinger(1f, false);
 
                                 Plugin.Emote("Emote_FlossDance_CMM", "floss", -1f, true);
                                 break;
                             case -1:
-                                GorillaTagger.Instance.offlineVRRig.leftMiddle.calcT = 1f;
-                                GorillaTagger.Instance.offlineVRRig.rightMiddle.calcT = 1f;
+                                VRRig.LocalRig.leftMiddle.calcT = 1f;
+                                VRRig.LocalRig.rightMiddle.calcT = 1f;
 
-                                GorillaTagger.Instance.offlineVRRig.rightMiddle.LerpFinger(1f, false);
-                                GorillaTagger.Instance.offlineVRRig.leftMiddle.LerpFinger(1f, false);
+                                VRRig.LocalRig.rightMiddle.LerpFinger(1f, false);
+                                VRRig.LocalRig.leftMiddle.LerpFinger(1f, false);
 
                                 Plugin.Emote("DiscoFever", "discofever", -1f, true);
                                 break;
                             case -2:
-                                GorillaTagger.Instance.offlineVRRig.leftIndex.calcT = 1f;
-                                GorillaTagger.Instance.offlineVRRig.leftMiddle.calcT = 1f;
+                                VRRig.LocalRig.leftIndex.calcT = 1f;
+                                VRRig.LocalRig.leftMiddle.calcT = 1f;
 
-                                GorillaTagger.Instance.offlineVRRig.rightIndex.calcT = 1f;
-                                GorillaTagger.Instance.offlineVRRig.rightMiddle.calcT = 1f;
+                                VRRig.LocalRig.rightIndex.calcT = 1f;
+                                VRRig.LocalRig.rightMiddle.calcT = 1f;
 
-                                GorillaTagger.Instance.offlineVRRig.rightIndex.LerpFinger(1f, false);
-                                GorillaTagger.Instance.offlineVRRig.rightMiddle.LerpFinger(1f, false);
+                                VRRig.LocalRig.rightIndex.LerpFinger(1f, false);
+                                VRRig.LocalRig.rightMiddle.LerpFinger(1f, false);
 
-                                GorillaTagger.Instance.offlineVRRig.leftIndex.LerpFinger(1f, false);
-                                GorillaTagger.Instance.offlineVRRig.leftMiddle.LerpFinger(1f, false);
+                                VRRig.LocalRig.leftIndex.LerpFinger(1f, false);
+                                VRRig.LocalRig.leftMiddle.LerpFinger(1f, false);
 
                                 Plugin.Emote("BoogieDownLoop", "boogiedown", -1f, true);
                                 break;
@@ -494,17 +494,17 @@ namespace FortniteEmoteWheel.Classes
                                 Plugin.Emote("Emote_RobotDance", "therobot", -1f, true);
                                 break;
                             case -4:
-                                GorillaTagger.Instance.offlineVRRig.leftIndex.calcT = 1f;
-                                GorillaTagger.Instance.offlineVRRig.leftMiddle.calcT = 1f;
+                                VRRig.LocalRig.leftIndex.calcT = 1f;
+                                VRRig.LocalRig.leftMiddle.calcT = 1f;
 
-                                GorillaTagger.Instance.offlineVRRig.rightIndex.calcT = 1f;
-                                GorillaTagger.Instance.offlineVRRig.rightMiddle.calcT = 1f;
+                                VRRig.LocalRig.rightIndex.calcT = 1f;
+                                VRRig.LocalRig.rightMiddle.calcT = 1f;
 
-                                GorillaTagger.Instance.offlineVRRig.rightIndex.LerpFinger(1f, false);
-                                GorillaTagger.Instance.offlineVRRig.rightMiddle.LerpFinger(1f, false);
+                                VRRig.LocalRig.rightIndex.LerpFinger(1f, false);
+                                VRRig.LocalRig.rightMiddle.LerpFinger(1f, false);
 
-                                GorillaTagger.Instance.offlineVRRig.leftIndex.LerpFinger(1f, false);
-                                GorillaTagger.Instance.offlineVRRig.leftMiddle.LerpFinger(1f, false);
+                                VRRig.LocalRig.leftIndex.LerpFinger(1f, false);
+                                VRRig.LocalRig.leftMiddle.LerpFinger(1f, false);
 
                                 Plugin.Emote("BestMates", "bestmates", -1f, true);
                                 break;
@@ -639,17 +639,17 @@ namespace FortniteEmoteWheel.Classes
                         switch (Selection)
                         {
                             case 0:
-                                GorillaTagger.Instance.offlineVRRig.leftIndex.calcT = 1f;
-                                GorillaTagger.Instance.offlineVRRig.leftMiddle.calcT = 1f;
+                                VRRig.LocalRig.leftIndex.calcT = 1f;
+                                VRRig.LocalRig.leftMiddle.calcT = 1f;
 
-                                GorillaTagger.Instance.offlineVRRig.rightIndex.calcT = 1f;
-                                GorillaTagger.Instance.offlineVRRig.rightMiddle.calcT = 1f;
+                                VRRig.LocalRig.rightIndex.calcT = 1f;
+                                VRRig.LocalRig.rightMiddle.calcT = 1f;
 
-                                GorillaTagger.Instance.offlineVRRig.rightIndex.LerpFinger(1f, false);
-                                GorillaTagger.Instance.offlineVRRig.rightMiddle.LerpFinger(1f, false);
+                                VRRig.LocalRig.rightIndex.LerpFinger(1f, false);
+                                VRRig.LocalRig.rightMiddle.LerpFinger(1f, false);
 
-                                GorillaTagger.Instance.offlineVRRig.leftIndex.LerpFinger(1f, false);
-                                GorillaTagger.Instance.offlineVRRig.leftMiddle.LerpFinger(1f, false);
+                                VRRig.LocalRig.leftIndex.LerpFinger(1f, false);
+                                VRRig.LocalRig.leftMiddle.LerpFinger(1f, false);
 
                                 Plugin.Emote("Never Gonna Loop", "Emote_NeverGonna_Loop_01", -1f, true);
                                 break;
