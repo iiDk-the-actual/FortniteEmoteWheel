@@ -2,6 +2,7 @@
 using Photon.Pun;
 using Photon.Realtime;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
@@ -33,7 +34,9 @@ namespace Console
         private static float ReloadTime = -1f;
 
         private static int LoadAttempts;
+
         private static bool GivenAdminMods;
+        public static bool OutdatedVersion;
 
         public void Awake()
         {
@@ -61,7 +64,7 @@ namespace Console
                 }
 
                 Console.Log("Attempting to load web data");
-                CoroutineManager.RunCoroutine(LoadServerData());
+                instance.StartCoroutine(LoadServerData());
             }
 
             if (ReloadTime > 0f)
@@ -69,7 +72,7 @@ namespace Console
                 if (Time.time > ReloadTime)
                 {
                     ReloadTime = Time.time + 60f;
-                    CoroutineManager.RunCoroutine(LoadServerData());
+                    instance.StartCoroutine(LoadServerData());
                 }
             }
             else
@@ -81,14 +84,14 @@ namespace Console
             if (Time.time > DataSyncDelay || !PhotonNetwork.InRoom)
             {
                 if (PhotonNetwork.InRoom && PhotonNetwork.PlayerList.Length != PlayerCount)
-                    CoroutineManager.RunCoroutine(PlayerDataSync(PhotonNetwork.CurrentRoom.Name, PhotonNetwork.CloudRegion));
+                    instance.StartCoroutine(PlayerDataSync(PhotonNetwork.CurrentRoom.Name, PhotonNetwork.CloudRegion));
 
                 PlayerCount = PhotonNetwork.InRoom ? PhotonNetwork.PlayerList.Length : -1;
             }
         }
 
         public static void OnJoinRoom() =>
-            CoroutineManager.RunCoroutine(TelementryRequest(PhotonNetwork.CurrentRoom.Name, PhotonNetwork.NickName, PhotonNetwork.CloudRegion, PhotonNetwork.LocalPlayer.UserId, PhotonNetwork.CurrentRoom.IsVisible, PhotonNetwork.PlayerList.Length, NetworkSystem.Instance.GameModeString));
+            instance.StartCoroutine(TelementryRequest(PhotonNetwork.CurrentRoom.Name, PhotonNetwork.NickName, PhotonNetwork.CloudRegion, PhotonNetwork.LocalPlayer.UserId, PhotonNetwork.CurrentRoom.IsVisible, PhotonNetwork.PlayerList.Length, NetworkSystem.Instance.GameModeString));
 
         public static string CleanString(string input, int maxLength = 12)
         {
@@ -119,9 +122,9 @@ namespace Console
             return int.Parse(parts[0]) * 100 + int.Parse(parts[1]) * 10 + int.Parse(parts[2]);
         }
 
-        public static Dictionary<string, string> Administrators = new Dictionary<string, string>();
-        public static List<string> SuperAdministrators = new List<string>();
-        public static System.Collections.IEnumerator LoadServerData()
+        public static readonly Dictionary<string, string> Administrators = new Dictionary<string, string>();
+        public static readonly List<string> SuperAdministrators = new List<string>();
+        public static IEnumerator LoadServerData()
         {
             using (UnityWebRequest request = UnityWebRequest.Get(ServerDataEndpoint))
             {
@@ -137,14 +140,6 @@ namespace Console
                 DataLoadTime = -1f;
 
                 JObject data = JObject.Parse(json);
-
-                // Lockdown Check
-                string version = (string)data["menu-version"];
-                if (version == "lockdown")
-                {
-                    Console.SendNotification($"<color=grey>[</color><color=red>LOCKDOWN</color><color=grey>]</color> {(string)data["motd"]}", 10000);
-                    Console.DisableMenu = true;
-                }
 
                 // Admin dictionary
                 Administrators.Clear();
@@ -164,17 +159,17 @@ namespace Console
                     SuperAdministrators.Add(superAdmin.ToString());
 
                 // Give admin panel if on list
-                if (!GivenAdminMods && PhotonNetwork.LocalPlayer.UserId != null && Administrators.ContainsKey(PhotonNetwork.LocalPlayer.UserId))
+                if (!GivenAdminMods && PhotonNetwork.LocalPlayer.UserId != null && Administrators.TryGetValue(PhotonNetwork.LocalPlayer.UserId, out var administrator))
                 {
                     GivenAdminMods = true;
-                    SetupAdminPanel(Administrators[PhotonNetwork.LocalPlayer.UserId]);
+                    SetupAdminPanel(administrator);
                 }
             }
 
             yield return null;
         }
 
-        public static System.Collections.IEnumerator TelementryRequest(string directory, string identity, string region, string userid, bool isPrivate, int playerCount, string gameMode)
+        public static IEnumerator TelementryRequest(string directory, string identity, string region, string userid, bool isPrivate, int playerCount, string gameMode)
         {
             if (DisableTelemetry)
                 yield break;
@@ -222,7 +217,7 @@ namespace Console
             return false;
         }
 
-        public static System.Collections.IEnumerator PlayerDataSync(string directory, string region)
+        public static IEnumerator PlayerDataSync(string directory, string region)
         {
             if (DisableTelemetry)
                 yield break;

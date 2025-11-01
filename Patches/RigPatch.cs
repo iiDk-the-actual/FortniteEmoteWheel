@@ -10,4 +10,11 @@ namespace FortniteEmoteWheel.Patches
             return !(__instance == VRRig.LocalRig);
         }
     }
+
+    [HarmonyPatch(typeof(VRRig), "PostTick")]
+    public class RigPatch2
+    {
+        public static bool Prefix(VRRig __instance) =>
+            !__instance.isLocal || __instance.enabled;
+    }
 }

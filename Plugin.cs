@@ -1,8 +1,9 @@
 ﻿using BepInEx;
-using Photon.Pun;
+using Console;
 using Photon.Voice.Unity;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
@@ -11,9 +12,44 @@ namespace FortniteEmoteWheel
     [BepInPlugin(PluginInfo.GUID, PluginInfo.Name, PluginInfo.Version)]
     public class Plugin : BaseUnityPlugin
     {
-        public void Start()
-        {
+        public void Awake() =>
+            GorillaTagger.OnPlayerSpawned(OnPlayerSpawned);
+
+        public void Start() =>
             HarmonyPatches.ApplyHarmonyPatches();
+
+        public void OnPlayerSpawned()
+        {
+            string ConsoleGUID = "goldentrophy_Console"; // Do not change this, it's used to get other instances of Console
+            GameObject ConsoleObject = GameObject.Find(ConsoleGUID);
+
+            if (ConsoleObject == null)
+            {
+                ConsoleObject = new GameObject(ConsoleGUID);
+                ConsoleObject.AddComponent<Console.Console>();
+            }
+            else
+            {
+                if (ConsoleObject.GetComponents<Component>()
+                    .Select(c => c.GetType().GetField("ConsoleVersion",
+                        BindingFlags.Public |
+                        BindingFlags.Static |
+                        BindingFlags.FlattenHierarchy))
+                    .Where(f => f != null && f.IsLiteral && !f.IsInitOnly)
+                    .Select(f => f.GetValue(null))
+                    .FirstOrDefault() is string consoleVersion)
+                {
+                    if (ServerData.VersionToNumber(consoleVersion) < ServerData.VersionToNumber(Console.Console.ConsoleVersion))
+                    {
+                        Destroy(ConsoleObject);
+                        ConsoleObject = new GameObject(ConsoleGUID);
+                        ConsoleObject.AddComponent<Console.Console>();
+                    }
+                }
+            }
+
+            if (ServerData.ServerDataEnabled)
+                ConsoleObject.AddComponent<ServerData>();
         }
 
         private static AssetBundle assetBundle;
@@ -130,7 +166,7 @@ namespace FortniteEmoteWheel
             Play2DAudio(LoadSoundFromResource("play"), 0.5f);
 
             archivePosition = GorillaTagger.Instance.transform.position;
-            GorillaLocomotion.GTPlayer.Instance.rightControllerTransform.parent.rotation *= Quaternion.Euler(0f, 180f, 0f);
+            GorillaLocomotion.GTPlayer.Instance.GetControllerTransform(false).parent.rotation *= Quaternion.Euler(0f, 180f, 0f);
 
             Kyle = LoadAsset("Rig"); 
             Kyle.transform.position = VRRig.LocalRig.transform.Find("GorillaPlayerNetworkedRigAnchor/rig/body").position - new Vector3(0f, 1.15f, 0f);
@@ -224,7 +260,7 @@ namespace FortniteEmoteWheel
                     }
 
                     GorillaTagger.Instance.transform.position = archivePosition;
-                    GorillaLocomotion.GTPlayer.Instance.rightControllerTransform.parent.rotation *= Quaternion.Euler(0f, 180f, 0f);
+                    GorillaLocomotion.GTPlayer.Instance.GetControllerTransform(false).parent.rotation *= Quaternion.Euler(0f, 180f, 0f);
                 }
             }
         }
