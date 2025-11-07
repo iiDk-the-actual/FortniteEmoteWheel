@@ -22,7 +22,10 @@ namespace FortniteEmoteWheel.Classes
         private void Awake()
         {
             if (instance != null)
-                Destroy(instance);
+            {
+                Destroy(this);
+                return;
+            }
 
             IsSteam = Traverse.Create(PlayFabAuthenticator.instance).Field("platform").GetValue().ToString().ToLower() == "steam";
 
@@ -33,10 +36,8 @@ namespace FortniteEmoteWheel.Classes
             SetVisible(false);
         }
 
-        public void SetVisible(bool visible)
-        {
+        public void SetVisible(bool visible) =>
             Base.SetActive(visible);
-        }
 
         public float GetTurnAngle(Vector2 position)
         {
@@ -54,8 +55,7 @@ namespace FortniteEmoteWheel.Classes
                 return SteamVR_Actions.gorillaTag_LeftJoystick2DAxis.GetAxis(SteamVR_Input_Sources.LeftHand);
             else
             {
-                Vector2 leftJoystick;
-                ControllerInputPoller.instance.leftControllerDevice.TryGetFeatureValue(UnityEngine.XR.CommonUsages.primary2DAxis, out leftJoystick);
+                ControllerInputPoller.instance.leftControllerDevice.TryGetFeatureValue(UnityEngine.XR.CommonUsages.primary2DAxis, out Vector2 leftJoystick);
                 return leftJoystick;
             }
         }
@@ -66,8 +66,7 @@ namespace FortniteEmoteWheel.Classes
                 return SteamVR_Actions.gorillaTag_RightJoystick2DAxis.GetAxis(SteamVR_Input_Sources.RightHand);
             else
             {
-                Vector2 rightJoystick;
-                ControllerInputPoller.instance.rightControllerDevice.TryGetFeatureValue(UnityEngine.XR.CommonUsages.primary2DAxis, out rightJoystick);
+                ControllerInputPoller.instance.rightControllerDevice.TryGetFeatureValue(UnityEngine.XR.CommonUsages.primary2DAxis, out Vector2 rightJoystick);
                 return rightJoystick;
             }
         }
@@ -78,8 +77,7 @@ namespace FortniteEmoteWheel.Classes
                 return SteamVR_Actions.gorillaTag_LeftJoystickClick.GetState(SteamVR_Input_Sources.LeftHand);
             else
             {
-                bool leftJoystickClick;
-                ControllerInputPoller.instance.leftControllerDevice.TryGetFeatureValue(UnityEngine.XR.CommonUsages.primary2DAxisClick, out leftJoystickClick);
+                ControllerInputPoller.instance.leftControllerDevice.TryGetFeatureValue(UnityEngine.XR.CommonUsages.primary2DAxisClick, out bool leftJoystickClick);
                 return leftJoystickClick;
             }
         }
@@ -90,8 +88,7 @@ namespace FortniteEmoteWheel.Classes
                 return SteamVR_Actions.gorillaTag_RightJoystickClick.GetState(SteamVR_Input_Sources.RightHand);
             else
             {
-                bool rightJoystickClick;
-                ControllerInputPoller.instance.rightControllerDevice.TryGetFeatureValue(UnityEngine.XR.CommonUsages.primary2DAxisClick, out rightJoystickClick);
+                ControllerInputPoller.instance.rightControllerDevice.TryGetFeatureValue(UnityEngine.XR.CommonUsages.primary2DAxisClick, out bool rightJoystickClick);
                 return rightJoystickClick;
             }
         }
@@ -114,9 +111,7 @@ namespace FortniteEmoteWheel.Classes
             if (GetLeftJoystickDown() || vHeld)
             {
                 Plugin.emoteTime = -9999f;
-
-                if (Plugin.audiomgr != null)
-                    Plugin.audiomgr.GetComponent<AudioSource>().Stop();
+                Plugin.audiomgr?.GetComponent<AudioSource>().Stop();
             }
 
             if ((leftButton || rightButton || Mathf.Abs(GetLeftJoystickAxis().x) > 0.5f) && Time.time > changePageDelay && Base.activeSelf)
@@ -135,9 +130,7 @@ namespace FortniteEmoteWheel.Classes
 
                 GameObject Pages = Base.transform.Find("Pages").gameObject;
                 for (int i = 0; i < Pages.transform.childCount; i++)
-                {
                     Pages.transform.GetChild(i).gameObject.SetActive(int.Parse(Pages.transform.GetChild(i).name) == Page);
-                }
             }
 
             if (GetRightJoystickDown() || bHeld)
@@ -159,9 +152,7 @@ namespace FortniteEmoteWheel.Classes
                     Selector.transform.localRotation = Quaternion.Euler(0f, 0f, 45 * Mathf.Round((GetTurnAngle(Direction) - 90f) / 45f));
                     
                     if (Selector.transform.localRotation.z != prevRotation)
-                    {
                         Plugin.Play2DAudio(Plugin.LoadSoundFromResource("nav"), 0.5f);
-                    }
                     prevRotation = Selector.transform.localRotation.z;
 
                     int selected = (int)Math.Floor(Math.Round((GetTurnAngle(Direction) - 90f) / 45f));

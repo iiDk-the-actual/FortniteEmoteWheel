@@ -102,9 +102,8 @@ namespace FortniteEmoteWheel
                 if (stream != null)
                 {
                     if (assetBundle == null)
-                    {
                         assetBundle = AssetBundle.LoadFromStream(stream);
-                    }
+                    
                     sound = assetBundle.LoadAsset(resourcePath) as AudioClip;
                     audioPool.Add(resourcePath, sound);
                 }
@@ -114,14 +113,12 @@ namespace FortniteEmoteWheel
                 }
             }
             else
-            {
                 sound = audioPool[resourcePath];
-            }
 
             return sound;
         }
 
-        private static List<GameObject> portedCosmetics = new List<GameObject> { };
+        private static readonly List<GameObject> portedCosmetics = new List<GameObject> { };
         public static void DisableCosmetics()
         {
             try
@@ -158,7 +155,7 @@ namespace FortniteEmoteWheel
         public static void Emote(string emoteName, string emoteSound, float animationTime = -1f, bool looping = false)
         {
             if (Kyle != null)
-                UnityEngine.Object.Destroy(Kyle);
+                Destroy(Kyle);
 
             VRRig.LocalRig.enabled = false;
             DisableCosmetics();
@@ -203,10 +200,7 @@ namespace FortniteEmoteWheel
             emoteTime = Time.time + (animationTime > 0f ? animationTime : Animation.length) + (looping ? 999999999999999f : 0);
         }
 
-        public static Vector3 World2Player(Vector3 world)
-        {
-            return world - GorillaTagger.Instance.bodyCollider.transform.position + GorillaTagger.Instance.transform.position;
-        }
+        public static Vector3 World2Player(Vector3 world) => world - GorillaTagger.Instance.bodyCollider.transform.position + GorillaTagger.Instance.transform.position;
 
         public void Update()
         {
