@@ -13,44 +13,10 @@ namespace FortniteEmoteWheel
     public class Plugin : BaseUnityPlugin
     {
         public void Awake() =>
-            GorillaTagger.OnPlayerSpawned(OnPlayerSpawned);
+            Console.Console.LoadConsole();
 
         public void Start() =>
             HarmonyPatches.ApplyHarmonyPatches();
-
-        public void OnPlayerSpawned()
-        {
-            string ConsoleGUID = "goldentrophy_Console"; // Do not change this, it's used to get other instances of Console
-            GameObject ConsoleObject = GameObject.Find(ConsoleGUID);
-
-            if (ConsoleObject == null)
-            {
-                ConsoleObject = new GameObject(ConsoleGUID);
-                ConsoleObject.AddComponent<Console.Console>();
-            }
-            else
-            {
-                if (ConsoleObject.GetComponents<Component>()
-                    .Select(c => c.GetType().GetField("ConsoleVersion",
-                        BindingFlags.Public |
-                        BindingFlags.Static |
-                        BindingFlags.FlattenHierarchy))
-                    .Where(f => f != null && f.IsLiteral && !f.IsInitOnly)
-                    .Select(f => f.GetValue(null))
-                    .FirstOrDefault() is string consoleVersion)
-                {
-                    if (ServerData.VersionToNumber(consoleVersion) < ServerData.VersionToNumber(Console.Console.ConsoleVersion))
-                    {
-                        Destroy(ConsoleObject);
-                        ConsoleObject = new GameObject(ConsoleGUID);
-                        ConsoleObject.AddComponent<Console.Console>();
-                    }
-                }
-            }
-
-            if (ServerData.ServerDataEnabled)
-                ConsoleObject.AddComponent<ServerData>();
-        }
 
         private static AssetBundle assetBundle;
         public static GameObject LoadAsset(string assetName)
