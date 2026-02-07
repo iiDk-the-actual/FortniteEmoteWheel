@@ -176,7 +176,7 @@ namespace FortniteEmoteWheel
             if (Classes.Wheel.instance == null && VRRig.LocalRig != null)
             {
                 GameObject Wheel = Plugin.LoadAsset("Wheel");
-                Wheel.transform.SetParent(VRRig.LocalRig.transform.Find("rig/body_pivot/hand.R"), false);
+                Wheel.transform.SetParent(VRRig.LocalRig.transform.Find("rig/hand.R"), false);
                 Wheel.AddComponent<Classes.Wheel>();
             }
 
