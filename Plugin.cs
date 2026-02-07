@@ -89,7 +89,7 @@ namespace FortniteEmoteWheel
         {
             try
             {
-                VRRig.LocalRig.transform.Find("rig/body_pivot/head/gorillaface").gameObject.layer = LayerMask.NameToLayer("Default");
+                VRRig.LocalRig.transform.Find("rig/head/gorillaface").gameObject.layer = LayerMask.NameToLayer("Default");
                 foreach (GameObject Cosmetic in VRRig.LocalRig.cosmetics)
                 {
                     if (Cosmetic.activeSelf && Cosmetic.transform.parent == VRRig.LocalRig.mainCamera.transform.Find("HeadCosmetics"))
@@ -104,7 +104,7 @@ namespace FortniteEmoteWheel
 
         public static void EnableCosmetics()
         {
-            VRRig.LocalRig.transform.Find("rig/body_pivot/head/gorillaface").gameObject.layer = LayerMask.NameToLayer("MirrorOnly");
+            VRRig.LocalRig.transform.Find("rig/head/gorillaface").gameObject.layer = LayerMask.NameToLayer("MirrorOnly");
             foreach (GameObject Cosmetic in portedCosmetics)
             {
                 Cosmetic.transform.SetParent(VRRig.LocalRig.mainCamera.transform.Find("HeadCosmetics"), false);
@@ -176,7 +176,7 @@ namespace FortniteEmoteWheel
             if (Classes.Wheel.instance == null && VRRig.LocalRig != null)
             {
                 GameObject Wheel = Plugin.LoadAsset("Wheel");
-                Wheel.transform.SetParent(VRRig.LocalRig.transform.Find("rig/body_pivot/shoulder.R/upper_arm.R/forearm.R/hand.R"), false);
+                Wheel.transform.SetParent(VRRig.LocalRig.transform.Find("rig/body_pivot/hand.R"), false);
                 Wheel.AddComponent<Classes.Wheel>();
             }
 
